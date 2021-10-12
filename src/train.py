@@ -2,5 +2,5 @@ import pandas as pd
 
 import dataset
 
-print(dataset.forecasting())
+print(dataset.df_for_visualization())
 

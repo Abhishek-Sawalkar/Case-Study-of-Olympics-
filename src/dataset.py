@@ -1,5 +1,6 @@
 import pandas as pd 
 import numpy as np 
+import geopandas as gpd
 import os
 
 from utils import * 
@@ -56,5 +57,68 @@ def forecasting():
     
     return df
 
+
+def df_for_visualization():
+
+    # print('check1')
+    # contains all the border coordinates for each country. 
+    url = (
+        "https://raw.githubusercontent.com/python-visualization/folium/master/examples/data"
+    )
+    country_shapes = f"{url}/world-countries.json"
+    global_polygon = gpd.read_file(country_shapes)
+
+    # print('check2')
+    # adjusting the 'country_code' to match with country_code of df Dataframe. 
+    global_polygon.id =  global_polygon.id.apply(lambda x: 'DEN' if x=='DNK' else x)
+    global_polygon.id =  global_polygon.id.apply(lambda x: 'IRI' if x=='IRN' else x)
+    global_polygon.id =  global_polygon.id.apply(lambda x: 'NED' if x=='NLD' else x)
+    global_polygon.id =  global_polygon.id.apply(lambda x: 'POR' if x=='PRT' else x)
+    global_polygon.id =  global_polygon.id.apply(lambda x: 'RSA' if x=='ZAF' else x)
+    global_polygon.id =  global_polygon.id.apply(lambda x: 'SUI' if x=='CHE' else x)
+    global_polygon.id =  global_polygon.id.apply(lambda x: 'BUL' if x=='BGR' else x)
+    global_polygon.id =  global_polygon.id.apply(lambda x: 'GER' if x=='DEU' else x)
+    global_polygon.id =  global_polygon.id.apply(lambda x: 'GRE' if x=='GRC' else x)
+    global_polygon.id =  global_polygon.id.apply(lambda x: 'MGL' if x=='MNG' else x)
+    global_polygon.id =  global_polygon.id.apply(lambda x: 'SLO' if x=='HRV' else x)
+    global_polygon.id =  global_polygon.id.apply(lambda x: 'LAT' if x=='LVA' else x)
+    global_polygon.id =  global_polygon.id.apply(lambda x: 'NGR' if x=='NGA' else x)
+    global_polygon.id =  global_polygon.id.apply(lambda x: 'INA' if x=='IDN' else x)
+    global_polygon.id =  global_polygon.id.apply(lambda x: 'PUR' if x=='PRI' else x)
+    global_polygon.id =  global_polygon.id.apply(lambda x: 'TTO' if x=='TRI' else x)
+    global_polygon.id =  global_polygon.id.apply(lambda x: 'ALG' if x=='DZA' else x)
+    global_polygon.id =  global_polygon.id.apply(lambda x: 'PHI' if x=='PHL' else x)
+    global_polygon.id =  global_polygon.id.apply(lambda x: 'ZIM' if x=='ZWE' else x)
+    global_polygon.id =  global_polygon.id.apply(lambda x: 'CRC' if x=='CRI' else x)
+    global_polygon.id =  global_polygon.id.apply(lambda x: 'VIE' if x=='VNM' else x)
+    global_polygon.id =  global_polygon.id.apply(lambda x: 'FIJ' if x=='FJI' else x)
+    global_polygon.id =  global_polygon.id.apply(lambda x: 'KOS' if x=='-99' else x)
+    global_polygon.id =  global_polygon.id.apply(lambda x: 'CRO' if x=='SLO' else x)
+
+    # print('check3')
+    # sorting the dataframe by 'gold_medal', 'silver_medal', 'bronze_medal' and 'total'(all years)
+    dframe = pd.DataFrame(forecasting())
+    temp = dframe.groupby('country_code').agg(sum)
+    temp = temp[['gold_medal', 'silver_medal', 'bronze_medal', 'total']]
+    temp.head()
+
+    temp = temp.sort_values(['gold_medal', 'silver_medal', 'bronze_medal'], ascending= False)
+    temp = temp.reset_index(drop=False)
+    
+    # print('check4')
+    # considering only top 100 countries based on total medals owned till now.
+    countries_to_consider = temp['country_code'].head(100)
+    countries_to_consider =list(countries_to_consider)
+    dframe = dframe[dframe['country_code'].isin(countries_to_consider)]
+
+    # print('check5')
+    # Merging the global_polygon and df.
+    dframe['id'] = dframe['country_code']
+    dframe = dframe.merge(global_polygon, on='id', how='inner')
+
+    # print('check6')
+    return dframe, global_polygon
+
 if __name__ == "__main__":
     print(forecasting())
+    print(df_for_visualization())
